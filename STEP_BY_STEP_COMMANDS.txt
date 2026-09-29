@@ -1,0 +1,390 @@
+================================================================================
+ HINDUKUSH DRY FRUITS & SPECIALTIES — STEP-BY-STEP RECREATION GUIDE
+ Production-Grade React + TypeScript + Vite + Tailwind CSS Architecture
+================================================================================
+
+This document provides exact, copy-paste terminal commands and file structures 
+to reproduce, structure, and enhance this website from scratch.
+
+--------------------------------------------------------------------------------
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+1. Prerequisites & Environment
+2. Step 1: Initialize Vite + React + TypeScript Project
+3. Step 2: Install Dependencies & UI Tooling
+4. Step 3: Configure Path Aliases & Compilers
+5. Step 4: Configure Tailwind CSS & Design System
+6. Step 5: Directory Structure Setup
+7. Step 6: TypeScript Data Models (src/types/index.ts)
+8. Step 7: State Management (Zustand Stores)
+9. Step 8: Product Catalog & Color Palette (src/data/products.ts)
+10. Step 9: Core UI Primitives & Components
+11. Step 10: Interactive Custom Shawl Studio (Bespoke Atelier)
+12. Step 11: Application Routing & Pages
+13. Step 12: Development, Testing & Production Build
+14. Advanced Architectural Improvements for Production Scale
+
+================================================================================
+1. PREREQUISITES & ENVIRONMENT
+================================================================================
+- Node.js >= 18.0.0 (Recommended: Node 20 LTS)
+- npm >= 9.0.0 (or pnpm / yarn)
+- Modern browser supporting ES Modules and CSS Grid/Flexbox
+
+Verify installed versions:
+  node -v
+  npm -v
+
+================================================================================
+2. STEP 1: INITIALIZE VITE + REACT + TYPESCRIPT PROJECT
+================================================================================
+Run the following commands in your terminal:
+
+# 1. Create a new directory and navigate into it
+mkdir hindukush-store && cd hindukush-store
+
+# 2. Scaffold a clean Vite project with React and TypeScript template
+npm create vite@latest . -- --template react-ts
+
+# 3. Install initial packages
+npm install
+
+================================================================================
+3. STEP 2: INSTALL DEPENDENCIES & UI TOOLING
+================================================================================
+Install all production dependencies:
+
+npm install react-router-dom@^6.20.1 \
+  zustand@^4.4.7 \
+  lucide-react@^0.294.0 \
+  clsx@^2.0.0 \
+  tailwind-merge@^2.1.0 \
+  class-variance-authority@^0.7.0 \
+  @tanstack/react-query@^5.13.4 \
+  react-hook-form@^7.48.2 \
+  @hookform/resolvers@^3.3.2 \
+  zod@^3.22.4 \
+  @radix-ui/react-dialog@^1.0.5 \
+  @radix-ui/react-dropdown-menu@^2.0.6 \
+  @radix-ui/react-select@^2.0.0 \
+  @radix-ui/react-tabs@^1.0.4 \
+  @radix-ui/react-toast@^1.1.5 \
+  @radix-ui/react-accordion@^1.1.2 \
+  @radix-ui/react-slot@^1.0.2
+
+Install dev dependencies (Tailwind CSS, PostCSS, Autoprefixer, TypeScript types):
+
+npm install -D tailwindcss@^3.3.6 \
+  postcss@^8.4.32 \
+  autoprefixer@^10.4.16 \
+  tailwindcss-animate@^1.0.7 \
+  @types/node@^20.10.4
+
+Initialize Tailwind & PostCSS configuration:
+npx tailwindcss init -p
+
+================================================================================
+4. STEP 3: CONFIGURE PATH ALIASES & COMPILERS
+================================================================================
+Enable '@/*' path aliases for clean module imports.
+
+1. Edit vite.config.ts:
+--------------------------------------------------------------------------------
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+});
+--------------------------------------------------------------------------------
+
+2. Edit tsconfig.json (add compilerOptions):
+--------------------------------------------------------------------------------
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": ["src"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}
+--------------------------------------------------------------------------------
+
+================================================================================
+5. STEP 4: CONFIGURE TAILWIND CSS & DESIGN SYSTEM
+================================================================================
+Update tailwind.config.js:
+--------------------------------------------------------------------------------
+/** @type {import('tailwindcss').Config} */
+export default {
+  darkMode: ["class"],
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    container: {
+      center: true,
+      padding: "1rem",
+      screens: {
+        "2xl": "1400px",
+      },
+    },
+    extend: {
+      colors: {
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        primary: {
+          DEFAULT: "#C86D3B", // Warm Terracotta Copper
+          foreground: "#FFFFFF",
+        },
+        brand: {
+          50: '#FDF8F4',
+          100: '#FBEFE7',
+          500: '#C86D3B',
+          600: '#B55B2B',
+          700: '#94441D',
+          800: '#2C221E', // Dark Mountain Espresso
+          900: '#1F1714',
+        },
+        pine: {
+          500: '#2B4C3F', // Deep Mountain Pine Green
+          700: '#1D352B',
+        },
+      },
+      fontFamily: {
+        serif: ['Playfair Display', 'Georgia', 'serif'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+      },
+    },
+  },
+  plugins: [require("tailwindcss-animate")],
+}
+--------------------------------------------------------------------------------
+
+Create/Update src/lib/utils.ts:
+--------------------------------------------------------------------------------
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+export function formatPrice(amount: number): string {
+  return `PKR ${amount.toLocaleString('en-PK')}`;
+}
+
+export function generateStars(rating: number): ('full' | 'half' | 'empty')[] {
+  const stars: ('full' | 'half' | 'empty')[] = [];
+  const rounded = Math.round(rating * 2) / 2;
+  for (let i = 1; i <= 5; i++) {
+    if (rounded >= i) stars.push('full');
+    else if (rounded >= i - 0.5) stars.push('half');
+    else stars.push('empty');
+  }
+  return stars;
+}
+--------------------------------------------------------------------------------
+
+================================================================================
+6. STEP 5: DIRECTORY STRUCTURE SETUP
+================================================================================
+Execute to create clean modular folder architecture:
+
+mkdir -p src/components/cart \
+  src/components/home \
+  src/components/layout \
+  src/components/product \
+  src/components/shawl \
+  src/components/ui \
+  src/data \
+  src/lib \
+  src/pages/Account \
+  src/pages/Cart \
+  src/pages/Checkout \
+  src/pages/Home \
+  src/pages/Orders \
+  src/pages/Product \
+  src/pages/Shop \
+  src/store \
+  src/types \
+  public/images
+
+================================================================================
+7. STEP 6: DATA MODELS (src/types/index.ts)
+================================================================================
+Ensure the following interfaces are declared in src/types/index.ts:
+- Product & WeightOption (weight, grams, price, originalPrice, sku)
+- Category & SubCategory (men-shawls, women-shawls, dry-fruits, dried-fruits, etc.)
+- CartItem with customDetails:
+  {
+    gender?: 'Men' | 'Women';
+    colorName?: string;
+    colorHex?: string;
+    dimensions?: string;
+    woolGrade?: string;
+    embroideryStyle?: string;
+    customerNotes?: string;
+  }
+- ShippingAddress & Order (cod & jazzcash payment modes, tracking timeline)
+
+================================================================================
+8. STEP 7: STATE MANAGEMENT (Zustand Stores)
+================================================================================
+1. src/store/cartStore.ts:
+   - persist() middleware to persist cart items in localStorage
+   - addItem(product, weight, quantity)
+   - addCustomItem(item: CartItem) -> Preserves custom shawl specs (color, size, gender)
+   - removeItem(id)
+   - updateQuantity(id, quantity)
+   - applyCoupon(code) with WELCOME10 (10%), HINDUKUSH15 (15%), FREESHIP (5%)
+   - getSubtotal(), getDeliveryFee(), getTotal()
+
+2. src/store/authStore.ts:
+   - User profile, addresses, saved orders, authentication state
+
+================================================================================
+9. STEP 8: PRODUCT CATALOG & SHAWL CATEGORIZATION
+================================================================================
+In src/data/products.ts:
+1. Divide products into clean categories:
+   - Almonds, Walnuts, Cashews, Pistachios, Chilgoza & Seeds, Dried Fruits,
+     Shilajeet & Honey, Kilao & Gift Boxes, Traditional Wear.
+
+2. Categorize Shawls explicitly:
+   a) Men's Shawls (Subcategory: 'men-shawls'):
+      - Name: "Men's Chitrali Pure Mountain Wool Shawl / Chaddar (مردانہ پٹو شال)"
+      - Heavyweight, windproof, traditional fringe edges.
+      - Sizes: Standard Chaddar (2.5m x 1.25m), Heavy Winter (3m x 1.5m), Custom.
+      - Image: /images/mens_chitrali_shawl.jpg
+      - Tags: ['shawl', 'men-shawl', 'pattu', 'custom-made', 'custom-color']
+
+   b) Women's Shawls (Subcategory: 'women-shawls'):
+      - Name: "Pure Wool Hand-Embroidered Ladies Shawl (خواتین شال)"
+      - Fine mountain wool with floral Tilla / Resham needlework.
+      - Sizes: Standard (2.25m x 1.15m), Festive Royal (2.5m x 1.25m), Custom.
+      - Image: /images/embroidered_ladies_shawl.jpg
+      - Tags: ['shawl', 'ladies-shawl', 'embroidery', 'custom-made', 'custom-color']
+
+3. Natural & Botanical Color Palette for Custom Orders:
+   - Natural Undyed Mountain Sheep Wool (Chemical-free):
+     * Karakul Natural Ivory (#F4EFE6)
+     * Chitrali Camel Khaki (#C19A6B)
+     * Heather Mountain Mist Grey (#9A948D)
+     * Deep Mountain Charcoal (#3A322D)
+   - Botanical Herbal & Mineral Dyes:
+     * Rohnas Ruby Crimson (#78282B - Wild Madder Root)
+     * Emerald Juniper Green (#1E4434 - High Mountain Pine)
+     * Midnight Khyber Indigo (#1E2A3A - Mineral Indigo)
+     * Anar Dana Golden Mustard (#C6923C - Wild Pomegranate Peels)
+     * Walnut Husk Bark Umber (#553E2D - Walnut Husk Dye)
+     * Kafirstan Rose Terracotta (#C48378 - Mineral Clay)
+   - Bespoke Custom Dye Match (+PKR 600) with write-in shade & cloth swatch match.
+
+================================================================================
+10. STEP 9: CORE UI & CUSTOM SHAWL STUDIO
+================================================================================
+1. src/components/shawl/CustomShawlModal.tsx:
+   - Interactive dialog allowing customers to:
+     * Toggle Men's Pattu Chaddar vs Women's Embroidered Shawl
+     * Select exact color swatches with visual swatches and Urdu/English names
+     * Option for custom color input / cloth swatch matching
+     * Choose dimensions (Standard, Large Overcoat, Bespoke)
+     * Choose wool grade (100% Sheep Wool, Pashmina/Cashmere Blend, Double-Weave)
+     * Custom embroidery preference & personalized monogram initials (+PKR 500)
+     * Special notes text area
+     * Dynamic live pricing calculation
+     * "Add Custom Shawl to Cart" button (adds directly into CartDrawer)
+     * "Inquire on WhatsApp" button with pre-formatted custom message
+
+2. src/components/product/ProductCard.tsx:
+   - Badges: Sale percentage, Bestseller, ✨ Custom Made
+   - Weight selection pills (250g, 500g, 1kg) with live price update
+   - In-stock pulsing green indicator
+   - "Add to Cart" and "Buy Now" triggers
+   - "Customize Color & Size" trigger button for custom-made shawls
+
+3. src/components/cart/CartDrawer.tsx:
+   - Slide-over cart drawer displaying regular items and custom-made shawls
+   - Shows selected gender, color badge with colored swatch dot, and dimensions
+   - Quantity controls, coupon code input, and Checkout redirect
+
+================================================================================
+11. STEP 10: CHECKOUT & LOCAL PAKISTAN INTEGRATION
+================================================================================
+src/pages/Checkout/index.tsx:
+- Pre-populated Pakistan cities & major sub-areas:
+  Islamabad, Rawalpindi, Lahore, Karachi, Chitral, Peshawar, Quetta, Multan, Faisalabad.
+- Cash on Delivery (COD) with verification note.
+- JazzCash / Easypaisa mobile wallet flow.
+- Free shipping threshold logic (> PKR 5,000).
+- Order tracking system with timeline:
+  Order Placed -> Verified -> Dispatched via TCS/Leopards -> Delivered.
+
+================================================================================
+12. STEP 11: RUNNING & TESTING
+================================================================================
+# Start development server with hot-module reload
+npm run dev
+
+# Run TypeScript type verification
+npx tsc --noEmit
+
+# Build production bundle
+npm run build
+
+# Preview production build locally
+npm run preview
+
+================================================================================
+13. ADVANCED ARCHITECTURAL IMPROVEMENTS FOR PRODUCTION SCALE
+================================================================================
+1. Image Optimization & CDN:
+   - Convert large camera images to WebP / AVIF formats.
+   - Serve product images through Cloudinary or Cloudflare Images with automatic
+     responsive sizing (`srcset` with w=400, w=800, w=1200).
+
+2. Direct WhatsApp API Webhook:
+   - Integrate WhatsApp Business Cloud API so whenever a customer configures a 
+     custom-made shawl, the artisan workshop in Chitral receives an automated 
+     job card with customer name, phone, color code, dimensions, and monogram.
+
+3. Backend API & Headless CMS (Optional Next Step):
+   - Replace static products.ts with a headless CMS (Sanity.io, Strapi, or Supabase)
+     so non-technical store managers can update dry fruit stock prices and seasonal
+     shawl batches without deploying code.
+
+4. Server-Side Rendering (Next.js 14 App Router):
+   - For high-volume organic search SEO on Google Pakistan (e.g., "Kaghazi Badam Chitral",
+     "Chitrali Pakol buy online"), migrate pages to Next.js SSR for instant indexation.
+
+================================================================================
+End of Guide — Hindukush Dry Fruits & Specialties (Pvt. Ltd.)
+================================================================================
